@@ -1,0 +1,20 @@
+<?php // CAMINHO DO ARQUIVO: config/db.php
+
+$host = 'localhost';
+$db   = 'loja_virtual';
+$user = 'root';
+$pass = 'Lastofus2022SGF';
+$charset = 'utf8mb4';
+
+$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+];
+
+try {
+    $pdo = new PDO($dsn, $user, $pass, $options);
+} catch (\PDOException $e) {
+    die('Erro na conexão com o banco: ' . $e->getMessage());
+}

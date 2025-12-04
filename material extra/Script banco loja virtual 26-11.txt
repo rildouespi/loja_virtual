@@ -1,0 +1,137 @@
+-- =========================================================
+-- SCRIPT COMPLETO – LOJA VIRTUAL (Práticas: Implementação em MySQL)
+-- Criação do banco, tabelas, chaves, índices e dados iniciais
+-- =========================================================
+
+-- 1. Criar o banco de dados
+DROP DATABASE IF EXISTS loja_virtual;
+CREATE DATABASE loja_virtual
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_unicode_ci;
+
+USE loja_virtual;
+
+-- 2. Tabela de categorias
+CREATE TABLE categorias (
+  id_categoria INT AUTO_INCREMENT PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  slug VARCHAR(120),
+  descricao TEXT,
+  ativo TINYINT(1) DEFAULT 1,
+  data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- 3. Tabela de marcas
+CREATE TABLE marcas (
+  id_marca INT AUTO_INCREMENT PRIMARY KEY,
+  nome VARCHAR(120) NOT NULL,
+  site VARCHAR(255),
+  logo_url VARCHAR(255),
+  ativo TINYINT(1) DEFAULT 1,
+  data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- 4. Tabela de produtos
+CREATE TABLE produtos (
+  id_produto INT AUTO_INCREMENT PRIMARY KEY,
+  nome VARCHAR(150) NOT NULL,
+  descricao TEXT,
+  preco DECIMAL(10,2) NOT NULL,
+  estoque INT DEFAULT 0,
+  id_categoria INT,
+  id_marca INT,
+  imagem_url VARCHAR(255),
+  ativo TINYINT(1) DEFAULT 1,
+  data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
+  data_atualizacao DATETIME DEFAULT CURRENT_TIMESTAMP
+    ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_produtos_categorias
+    FOREIGN KEY (id_categoria)
+    REFERENCES categorias(id_categoria),
+  CONSTRAINT fk_produtos_marcas
+    FOREIGN KEY (id_marca)
+    REFERENCES marcas(id_marca)
+) ENGINE=InnoDB;
+
+-- 5. Tabela de usuários administradores
+CREATE TABLE usuarios_admin (
+  id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+  nome VARCHAR(150) NOT NULL,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  senha_hash VARCHAR(255) NOT NULL,
+  perfil VARCHAR(50) DEFAULT 'admin',
+  ativo TINYINT(1) DEFAULT 1,
+  data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- 6. Tabela de imagens de produtos (opcional, mas já preparada)
+CREATE TABLE imagens_produto (
+  id_imagem INT AUTO_INCREMENT PRIMARY KEY,
+  id_produto INT NOT NULL,
+  url VARCHAR(255) NOT NULL,
+  ordem INT DEFAULT 1,
+  data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_imagens_produto_produtos
+    FOREIGN KEY (id_produto)
+    REFERENCES produtos(id_produto)
+) ENGINE=InnoDB;
+
+-- 7. Índices para melhorar buscas em produtos
+CREATE INDEX idx_produtos_categoria ON produtos(id_categoria);
+CREATE INDEX idx_produtos_marca ON produtos(id_marca);
+CREATE INDEX idx_produtos_nome ON produtos(nome);
+
+-- 8. Dados iniciais em categorias
+INSERT INTO categorias (nome, slug, descricao) VALUES
+('Eletrônicos', 'eletronicos', 'Aparelhos eletrônicos em geral'),
+('Roupas', 'roupas', 'Moda masculina, feminina e infantil'),
+('Livros', 'livros', 'Livros físicos e digitais');
+
+-- 9. Dados iniciais em marcas
+INSERT INTO marcas (nome, site, logo_url) VALUES
+('TechMaster', 'https://www.techmaster.com', 'img/marcas/techmaster.png'),
+('ModaBrasil', 'https://www.modabrasil.com', 'img/marcas/modabrasil.png'),
+('Editora Saber', 'https://www.editorasaber.com', 'img/marcas/editorasaber.png');
+
+-- 10. Dados iniciais em produtos
+INSERT INTO produtos (nome, descricao, preco, estoque, id_categoria, id_marca, imagem_url)
+VALUES
+('Smartphone X',
+ 'Smartphone com 128GB de armazenamento',
+ 1999.90,
+ 10,
+ 1,
+ 1,
+ 'img/produtos/smartphone_x.jpg'),
+
+('Camiseta Branca',
+ 'Camiseta 100% algodão',
+ 49.90,
+ 50,
+ 2,
+ 2,
+ 'img/produtos/camiseta_branca.jpg'),
+
+('Livro de SQL',
+ 'Guia prático de SQL para iniciantes',
+ 79.90,
+ 20,
+ 3,
+ 3,
+ 'img/produtos/livro_sql.jpg');
+
+-- 11. (Opcional) Usuário administrador de teste
+-- ATENÇÃO: senha_hash aqui é apenas exemplo; no sistema real,
+-- a senha deve ser gerada com função de hash (bcrypt, argon2 etc.).
+INSERT INTO usuarios_admin (nome, email, senha_hash)
+VALUES
+('Admin Padrão', 'admin@loja.com', 'senha_hash_exemplo');
+
+-- 12. (Opcional) Imagens adicionais por produto
+INSERT INTO imagens_produto (id_produto, url, ordem) VALUES
+(1, 'img/produtos/smartphone_x_1.jpg', 1),
+(1, 'img/produtos/smartphone_x_2.jpg', 2),
+(2, 'img/produtos/camiseta_branca_1.jpg', 1),
+(3, 'img/produtos/livro_sql_1.jpg', 1);
+
+-- FIM DO SCRIPT

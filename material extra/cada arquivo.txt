@@ -1,0 +1,226 @@
+1. Pasta config/
+config/db.php
+
+Arquivo de conexão com o banco de dados via PDO.
+
+Abre a conexão com o MySQL usando host, nome do banco, usuário e senha.
+Define o charset utf8mb4.
+Configura o PDO para lançar exceções em caso de erro.
+Deixa uma variável $pdo pronta para ser usada em qualquer página que fizer require_once desse arquivo.
+
+2. Pasta includes/
+includes/header.php
+
+Cabeçalho comum de todas as páginas.
+
+Abre o HTML (<!DOCTYPE html>, <html>, <head>, <body>).
+Define charset e título.
+Importa o CSS: public/css/style.css.
+Importa o JS principal: public/js/main.js.
+Cria o <header> com o nome da loja e link para index.php.
+Abre a <div class="container"> que será fechada no footer.php.
+includes/footer.php
+
+Rodapé comum de todas as páginas.
+
+Fecha a <div class="container">.
+Fecha <body> e <html>.
+Usado no final de praticamente todas as páginas para padronizar o layout.
+includes/auth_check.php
+
+Validação de autenticação do admin.
+
+Inicia a sessão (session_start()).
+Verifica se $_SESSION['admin_user'] existe.
+Se não existir, redireciona para public/login.php.
+É incluído nas páginas que exigem login (admin, categorias, marcas, scripts de CRUD).
+
+
+3. Pasta public/ — Parte visível do site
+public/css/style.css
+
+Folha de estilo do site.
+
+Define o visual geral: fonte, cores, fundo.
+Estiliza header, container, grid de produtos, cards, botões, tabelas do admin, formulários.
+Estiliza a página de detalhes de produto, formulários da área admin, mensagens etc.
+public/js/main.js
+
+Script JavaScript genérico.
+
+Rodando no DOMContentLoaded, por enquanto só exibe um console.log.
+Ponto central para colocar scripts gerais do site (validações simples, menus, etc.).
+public/index.php
+
+Página inicial da loja (lista de produtos).
+
+Inclui config/db.php para acessar o banco.
+Lê filtros de categoria e busca via $_GET.
+Busca categorias ativas em categorias para montar o <select>.
+Monta uma consulta em produtos unindo categorias e marcas para mostrar:
+nome, preço, estoque, categoria, marca, imagem.
+Aplica filtros: por categoria e por parte do nome (busca).
+Usa includes/header.php e includes/footer.php para layout.
+Renderiza os produtos em forma de cards (.produtos-grid), cada card com link para produto.php?id=....
+Usa um fallback de imagem (ex.: img/layout/sem_imagem.png) caso imagem_url esteja vazia.
+public/produto.php
+
+Página de detalhes de um produto.
+
+Inclui config/db.php.
+Pega o id do produto pela URL ($_GET['id']).
+Busca o produto na tabela produtos com join em categorias e marcas.
+Se não encontrar, encerra com mensagem de erro.
+Busca imagens extras na tabela imagens_produto (ordenadas por ordem).
+Define uma imagem principal:
+imagem_url do produto ou
+primeira imagem de imagens_produto ou
+img/layout/sem_imagem.png.
+Mostra:
+nome, preço, categoria, marca, descrição, estoque.
+Mostra miniaturas das imagens adicionais que, ao clicar, trocam a imagem principal.
+Usa includes/header.php e includes/footer.php.
+public/login.php
+
+Tela de login do administrador.
+
+Inicia sessão.
+Se já estiver logado ($_SESSION['admin_user']), redireciona para admin.php.
+Lê uma possível mensagem de erro enviada via GET (?erro=...).
+Exibe formulário com campos:
+email
+senha
+O formulário envia para ../admin/login_process.php via POST.
+Usa includes/header.php / footer.php.
+public/admin.php
+
+Painel principal de administração de produtos.
+
+Inclui includes/auth_check.php (obriga login).
+Inclui config/db.php.
+Busca todos os produtos da tabela produtos (id, nome, preço, estoque).
+Mostra links para:
+voltar à loja (index.php)
+sair (../admin/logout.php)
+gerenciar categorias (admin_categorias.php)
+gerenciar marcas (admin_marcas.php)
+Exibe mensagem (msg) vinda via GET (por exemplo, após criar/excluir).
+Mostra uma tabela com os produtos e um formulário de exclusão para cada linha:
+o submit chama ../admin/produto_delete.php.
+Abaixo da tabela, exibe um formulário para criar um novo produto:
+nome, descrição, preço, estoque, id_categoria, id_marca, imagem_url.
+envia via POST para ../admin/produto_create.php.
+public/admin_categorias.php
+
+Painel de administração de categorias.
+
+Inclui includes/auth_check.php e config/db.php.
+Busca todas as categorias em categorias.
+Exibe mensagem (msg) vinda via GET.
+Mostra tabela com:
+id, nome, slug, ativo, botão de excluir.
+Cada exclusão envia POST para ../admin/categoria_delete.php.
+Mostra formulário de criação de nova categoria:
+nome, slug, descrição, checkbox de ativo.
+envia POST para ../admin/categoria_create.php.
+Usa header.php / footer.php.
+public/admin_marcas.php
+
+Painel de administração de marcas.
+
+Inclui includes/auth_check.php e config/db.php.
+Busca todas as marcas em marcas.
+Exibe mensagem (msg) vinda via GET.
+Mostra tabela com:
+id, nome, site, logo_url, ativo, botão de excluir.
+Cada exclusão envia POST para ../admin/marca_delete.php.
+Formulário de nova marca:
+nome, site, logo_url, ativo.
+envia POST para ../admin/marca_create.php.
+Usa header.php / footer.php.
+4. Pasta admin/ — Scripts de backend da área administrativa
+admin/login_process.php
+
+Processa o login do admin.
+
+Inicia sessão.
+Inclui config/db.php.
+Lê email e senha do POST.
+Se campos vazios, redireciona para public/login.php com mensagem de erro.
+Busca o usuário em usuarios_admin pelo email, se ativo.
+Se não encontrar, redireciona com erro.
+Compara a senha enviada com o campo senha_hash (exemplo didático).
+Se batem, grava dados básicos em $_SESSION['admin_user'].
+Redireciona para public/admin.php.
+admin/logout.php
+
+Faz logout do admin.
+
+Inicia sessão.
+session_destroy().
+Redireciona para public/login.php.
+admin/produto_create.php
+
+Cria um novo produto.
+
+Inclui includes/auth_check.php (exige login) e config/db.php.
+Lê campos do POST:
+nome, descrição, preço, estoque, id_categoria, id_marca, imagem_url.
+Valida nome e preço.
+Executa INSERT em produtos, com ativo = 1.
+Redireciona para public/admin.php com mensagem de sucesso.
+admin/produto_delete.php
+
+Exclui um produto.
+
+Inclui auth_check e db.php.
+Lê id do POST.
+Se id inválido, retorna com mensagem.
+Executa DELETE FROM produtos WHERE id_produto = :id.
+Redireciona para public/admin.php com mensagem.
+admin/categoria_create.php
+
+Cria uma nova categoria.
+
+Inclui auth_check e db.php.
+Lê nome, slug, descricao, ativo do POST.
+Valida que nome não está vazio.
+Executa INSERT INTO categorias (...).
+Redireciona para public/admin_categorias.php com mensagem.
+admin/categoria_delete.php
+
+Exclui uma categoria (se não estiver em uso).
+
+Inclui auth_check e db.php.
+Lê id do POST.
+Verifica se existem produtos com id_categoria = :id.
+Se houver, redireciona com mensagem dizendo que não pode apagar.
+Se não houver, faz DELETE FROM categorias WHERE id_categoria = :id.
+Redireciona para public/admin_categorias.php com mensagem.
+admin/marca_create.php
+
+Cria uma nova marca.
+
+Inclui auth_check e db.php.
+Lê nome, site, logo_url, ativo.
+Valida nome.
+Executa INSERT INTO marcas (...).
+Redireciona para public/admin_marcas.php com mensagem.
+admin/marca_delete.php
+
+Exclui uma marca (se não estiver em uso).
+
+Inclui auth_check e db.php.
+Lê id do POST.
+Verifica se existem produtos com id_marca = :id.
+Se houver, redireciona com aviso.
+Se não houver, faz DELETE FROM marcas WHERE id_marca = :id.
+Redireciona para public/admin_marcas.php com mensagem.
+5. Pasta public/img/
+
+Organização sugerida:
+
+public/img/produtos/ — imagens de produtos (ex.: smartphone_x.jpg).
+public/img/marcas/ — logos de marcas.
+public/img/layout/ — imagens de layout geral:
+por exemplo: sem_imagem.png para quando não existe imagem cadastrada.
