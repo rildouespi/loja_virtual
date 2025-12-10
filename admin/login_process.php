@@ -12,8 +12,7 @@ if ($email === '' || $senha === '') {
 }
 
 // Busca usuário admin
-$stmt = $pdo->prepare("SELECT * FROM usuarios_admin 
-WHERE email = :email AND ativo = 1");
+$stmt = $pdo->prepare("SELECT * FROM usuarios_admin WHERE email = :email AND ativo = 1");
 $stmt->execute([':email' => $email]);
 $user = $stmt->fetch();
 
