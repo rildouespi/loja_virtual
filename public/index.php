@@ -6,8 +6,7 @@ $categoria = isset($_GET['categoria']) ? (int) $_GET['categoria'] : null;
 $busca = isset($_GET['busca']) ? trim($_GET['busca']) : '';
 
 // Buscar categorias
-$stmtCat = $pdo->query("SELECT id_categoria, nome FROM categorias
- WHERE ativo = 1 ORDER BY nome");
+$stmtCat = $pdo->query("SELECT id_categoria, nome FROM categorias WHERE ativo = 1 ORDER BY nome");
 $categorias = $stmtCat->fetchAll();
 
 // Buscar produtos com filtros
@@ -39,7 +38,6 @@ $produtos = $stmtProd->fetchAll();
 
 include __DIR__ . '/../includes/header.php';
 ?>
-
 <div class="filtros">
     <form method="get" style="display:flex; gap:10px; align-items:center;">
         <select name="categoria">
